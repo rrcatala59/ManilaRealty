@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum PropertyType {
+  CONDO
+  HOUSE
+  COMMERCIAL
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  RENTED
+  SOLD
+}
+
+enum UserRole {
+  ADMIN
+}
+
+model Property {
+  id          String         @id @default(cuid())
+  title       String
+  slug        String         @unique
+  description String
+  price       Int
+  city        String
+  address     String
+  type        PropertyType
+  beds        Int
+  baths       Int
+  sqm         Int
+  amenities   String
+  lat         Float
+  lng         Float
+  images      String
+  status      PropertyStatus @default(AVAILABLE)
+  isAvailable Boolean        @default(true)
+  isFeatured  Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  inquiries     Inquiry[]
+  reservations  Reservation[]
+}
+
+model Reservation {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  startDate  DateTime
+  endDate    DateTime
+  status     String   @default("placeholder")
+  createdAt  DateTime @default(now())
+}
+
+model Inquiry {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name       String
+  email      String
+  phone      String
+  message    String
+  createdAt  DateTime @default(now())
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(ADMIN)
+  createdAt    DateTime @default(now())
+}
