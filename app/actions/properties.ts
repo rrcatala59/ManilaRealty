@@ -79,13 +79,12 @@ export async function createProperty(formData: FormData) {
 
 export async function updateProperty(id: string, formData: FormData) {
   await requireAdmin();
-  const data = parsePropertyForm(formData);
-  const clash = await prisma.property.findFirst({
-    where: { slug: data.slug, NOT: { id } },
-  });
-  if (clash) {
-    data.slug = `${data.slug}-${Date.now().toString(36)}`;
+  const existing = await prisma.property.findUnique({ where: { id } });
+  if (!existing) {
+    throw new Error("Listing not found.");
   }
+  const data = parsePropertyForm(formData);
+  data.slug = existing.slug;
   await prisma.property.update({ where: { id }, data });
   revalidatePath("/");
   revalidatePath("/properties");
