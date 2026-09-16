@@ -7,9 +7,12 @@ Guests can search condos, houses, and commercial floors across Metro Manila, ope
 ## Stack
 
 - Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui
-- Prisma + SQLite (no cloud database required)
+- Prisma + SQLite locally (no cloud database required)
+- Optional Supabase client for listings and inquiries (`src/lib/listings.ts`)
 - Auth.js credentials for a single admin role
 - Leaflet + OpenStreetMap for the map stub
+
+When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, PropertyCard grids and InquiryForm writes go through Supabase. Otherwise the same queries use Prisma. Schema for a hosted project lives in `supabase/schema.sql`. Validated payloads and coordinate bounds live in `src/types/index.ts`.
 
 ## Run locally
 
@@ -33,7 +36,7 @@ Change these in `.env` (`ADMIN_EMAIL`, `ADMIN_PASSWORD`) before re-running `npm 
 
 - **Home** — hero search, featured homes, Manila philosophy
 - **Listings** — filters (city, type, price, bedrooms) and sort (newest, price)
-- **Detail** — gallery, specs, amenities, map pin, sticky inquiry form
+- **Detail (`/properties/[id]`)** — gallery frames, specs, amenities, Leaflet map on listing coordinates, sticky inquiry form
 - **Studio (`/admin`)** — listing counts, inquiry inbox, property CRUD, image URL or file upload
 
 The Property model includes `isAvailable` and a `Reservation` relation so a booking calendar can land later without a schema rewrite. Reservations are not shown in the UI yet.

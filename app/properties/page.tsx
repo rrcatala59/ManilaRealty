@@ -1,9 +1,9 @@
-import { prisma } from "@/lib/prisma";
 import { ListingFilters } from "@/components/listing-filters";
 import { MobileFilters } from "@/components/mobile-filters";
-import { PropertyCard } from "@/components/property-card";
+import { PropertyCard } from "@/src/components/PropertyCard";
 import { SearchBar } from "@/components/search-bar";
-import { buildPropertyOrder, buildPropertyWhere, type ListingFilters as Filters } from "@/lib/properties";
+import type { ListingFilters as Filters } from "@/lib/properties";
+import { listProperties } from "@/src/lib/listings";
 
 export const metadata = {
   title: "Listings",
@@ -15,10 +15,7 @@ export default async function PropertiesPage({
   searchParams: Promise<Filters>;
 }) {
   const filters = await searchParams;
-  const where = buildPropertyWhere(filters);
-  const orderBy = buildPropertyOrder(filters.sort);
-
-  const properties = await prisma.property.findMany({ where, orderBy });
+  const properties = await listProperties(filters);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16">

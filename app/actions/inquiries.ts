@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
+import { createInquiry } from "@/src/lib/listings";
 
 export type InquiryState = { ok: boolean; error?: string };
 
@@ -9,25 +9,17 @@ export async function submitInquiry(
   _prev: InquiryState,
   formData: FormData
 ): Promise<InquiryState> {
-  const propertyId = String(formData.get("propertyId") ?? "");
-  const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
-  const message = String(formData.get("message") ?? "").trim();
-
-  if (!propertyId || !name || !email || !phone || !message) {
-    return { ok: false, error: "Please complete every field." };
-  }
-
-  const property = await prisma.property.findUnique({ where: { id: propertyId } });
-  if (!property) {
-    return { ok: false, error: "That listing is no longer available." };
-  }
-
-  await prisma.inquiry.create({
-    data: { propertyId, name, email, phone, message },
+  const result = await createInquiry({
+    propertyId: String(formData.get("propertyId") ?? ""),
+    name: String(formData.get("name") ?? ""),
+    email: String(formData.get("email") ?? ""),
+    phone: String(formData.get("phone") ?? ""),
+    message: String(formData.get("message") ?? ""),
   });
 
-  revalidatePath("/admin");
-  return { ok: true };
+  if (result.ok) {
+    revalidatePath("/admin");
+    revalidatePath("/admin/inquiries");
+  }
+  return result;
 }

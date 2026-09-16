@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import { PropertyCard } from "@/components/property-card";
+import { PropertyCard } from "@/src/components/PropertyCard";
 import { SearchBar } from "@/components/search-bar";
+import { listFeaturedProperties } from "@/src/lib/listings";
 
 const HERO =
   "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2000&q=80";
@@ -26,11 +26,7 @@ const PHILOSOPHY = [
 ];
 
 export default async function HomePage() {
-  const featured = await prisma.property.findMany({
-    where: { isFeatured: true },
-    orderBy: { price: "desc" },
-    take: 6,
-  });
+  const featured = await listFeaturedProperties();
 
   return (
     <>

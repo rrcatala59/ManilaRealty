@@ -1,4 +1,4 @@
-import type { PropertyStatus, PropertyType } from "@prisma/client";
+import type { PropertyStatus, PropertyType } from "@/src/types";
 
 export function formatPHP(price: number) {
   return new Intl.NumberFormat("en-PH", {

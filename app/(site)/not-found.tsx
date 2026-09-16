@@ -1,11 +1,8 @@
-import { prisma } from "@/lib/prisma";
-import { PropertyCard } from "@/components/property-card";
+import { PropertyCard } from "@/src/components/PropertyCard";
+import { listFeaturedProperties } from "@/src/lib/listings";
 
 export default async function NotFound() {
-  const featured = await prisma.property.findMany({
-    where: { isFeatured: true },
-    take: 3,
-  });
+  const featured = await listFeaturedProperties();
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-24 text-center">
