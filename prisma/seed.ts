@@ -328,7 +328,44 @@ async function main() {
     });
   }
 
-  console.log(`Seeded ${properties.length} properties and admin ${email}`);
+  const penthouse = await prisma.property.findUnique({ where: { slug: "high-street-penthouse-bgc" } });
+  const sky = await prisma.property.findUnique({ where: { slug: "sky-residences-one-ayala" } });
+  if (penthouse) {
+    await prisma.reservation.createMany({
+      data: [
+        {
+          propertyId: penthouse.id,
+          startDate: new Date("2026-09-20T00:00:00.000Z"),
+          endDate: new Date("2026-09-24T00:00:00.000Z"),
+          guestName: "Held block",
+          guestEmail: "holds@brisarealty.ph",
+          status: "confirmed",
+        },
+        {
+          propertyId: penthouse.id,
+          startDate: new Date("2026-10-03T00:00:00.000Z"),
+          endDate: new Date("2026-10-08T00:00:00.000Z"),
+          guestName: "Viewing stay",
+          guestEmail: "guest@example.com",
+          status: "confirmed",
+        },
+      ],
+    });
+  }
+  if (sky) {
+    await prisma.reservation.create({
+      data: {
+        propertyId: sky.id,
+        startDate: new Date("2026-09-26T00:00:00.000Z"),
+        endDate: new Date("2026-09-29T00:00:00.000Z"),
+        guestName: "Pending hold",
+        guestEmail: "hold@example.com",
+        status: "pending",
+      },
+    });
+  }
+
+  console.log(`Seeded ${properties.length} properties, stays, and admin ${email}`);
 }
 
 main()

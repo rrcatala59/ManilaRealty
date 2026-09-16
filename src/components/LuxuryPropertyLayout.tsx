@@ -3,9 +3,16 @@ import { InquiryForm } from "@/src/components/InquiryForm";
 import { PropertyGallery } from "@/components/property-gallery";
 import { PropertyMap } from "@/components/property-map";
 import { formatPHP, statusLabel, typeLabel } from "@/lib/format";
-import type { PropertyRecord } from "@/src/types";
+import { BookingCalendar } from "@/src/components/BookingCalendar";
+import type { PropertyRecord, ReservationWindow } from "@/src/types";
 
-export function LuxuryPropertyLayout({ property }: { property: PropertyRecord }) {
+export function LuxuryPropertyLayout({
+  property,
+  windows,
+}: {
+  property: PropertyRecord;
+  windows: ReservationWindow[];
+}) {
   const { lat, lng } = property.coordinates;
   const listingRef = property.id.slice(-6).toUpperCase();
 
@@ -65,6 +72,20 @@ export function LuxuryPropertyLayout({ property }: { property: PropertyRecord })
 
           <section className="mt-12">
             <p className="text-[11px] tracking-[0.28em] uppercase text-muted-foreground">03</p>
+            <h2 className="font-heading mt-2 text-3xl md:text-4xl">Stay calendar</h2>
+            <p className="mt-3 mb-5 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              Held nights are blocked from the reservations table. Check-out is the first free morning after the stay.
+            </p>
+            <BookingCalendar
+              propertyId={property.id}
+              propertyTitle={property.title}
+              isOpen={property.isAvailable && property.status === "AVAILABLE"}
+              windows={windows}
+            />
+          </section>
+
+          <section className="mt-12">
+            <p className="text-[11px] tracking-[0.28em] uppercase text-muted-foreground">04</p>
             <h2 className="font-heading mt-2 text-3xl md:text-4xl">On the map</h2>
             <p className="mt-3 mb-5 max-w-xl text-sm leading-relaxed text-muted-foreground">
               Leaflet canvas centred on the listing coordinates ({lat.toFixed(5)}, {lng.toFixed(5)}) in{" "}

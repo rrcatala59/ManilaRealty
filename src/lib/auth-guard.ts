@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { isSupabaseConfigured } from "@/src/lib/supabase";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { hasAdminFlag, supabaseAuthConfig } from "@/src/lib/supabase/auth-config";
 
 export type AdminIdentity = {
   id: string;
@@ -38,14 +39,14 @@ export async function requireAdmin(): Promise<AdminIdentity> {
     } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase
-        .from("profiles")
-        .select("is_admin")
+        .from(supabaseAuthConfig.profileTable)
+        .select(supabaseAuthConfig.adminFlagColumn)
         .eq("id", user.id)
         .maybeSingle();
-      if (profile?.is_admin) {
+      if (hasAdminFlag(profile)) {
         return { id: user.id, email: user.email, isAdmin: true };
       }
-      redirect("/login");
+      redirect(supabaseAuthConfig.forbiddenPath);
     }
   }
 

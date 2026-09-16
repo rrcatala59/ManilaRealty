@@ -5,6 +5,7 @@ import { logoutAction } from "@/app/actions/auth";
 const nav = [
   { href: "/admin/dashboard", label: "Dashboard" },
   { href: "/admin/properties", label: "Listings" },
+  { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/inquiries", label: "Inquiries" },
 ];
 

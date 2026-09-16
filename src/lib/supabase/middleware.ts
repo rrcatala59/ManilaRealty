@@ -1,19 +1,26 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isSupabaseConfigured } from "@/src/lib/supabase";
+import { ADMIN_SESSION_COOKIES, hasAdminFlag, supabaseAuthConfig } from "@/src/lib/supabase/auth-config";
 
-function hasNextAuthSession(request: NextRequest) {
-  return Boolean(
-    request.cookies.get("authjs.session-token")?.value ||
-      request.cookies.get("__Secure-authjs.session-token")?.value
-  );
+function hasLocalAdminCookie(request: NextRequest) {
+  return ADMIN_SESSION_COOKIES.some((name) => Boolean(request.cookies.get(name)?.value));
+}
+
+export function isAdminPath(pathname: string) {
+  return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
 export async function protectAdminRoute(request: NextRequest) {
-  const login = new URL("/login", request.url);
+  if (!isAdminPath(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
+  const login = new URL(supabaseAuthConfig.loginPath, request.url);
+  login.searchParams.set("next", request.nextUrl.pathname);
 
   if (!isSupabaseConfigured()) {
-    if (!hasNextAuthSession(request)) {
+    if (!hasLocalAdminCookie(request)) {
       return NextResponse.redirect(login);
     }
     return NextResponse.next();
@@ -45,18 +52,18 @@ export async function protectAdminRoute(request: NextRequest) {
 
   if (user) {
     const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_admin")
+      .from(supabaseAuthConfig.profileTable)
+      .select(supabaseAuthConfig.adminFlagColumn)
       .eq("id", user.id)
       .maybeSingle();
 
-    if (profile?.is_admin) {
+    if (hasAdminFlag(profile)) {
       return response;
     }
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL(supabaseAuthConfig.forbiddenPath, request.url));
   }
 
-  if (hasNextAuthSession(request)) {
+  if (hasLocalAdminCookie(request)) {
     return NextResponse.next();
   }
 

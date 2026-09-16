@@ -1,14 +1,21 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { LoginForm } from "@/components/login-form";
+import { safeAdminPath } from "@/src/lib/supabase/auth-config";
 
 export const metadata = {
   title: "Advisor login",
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
   const session = await auth();
-  if (session?.user) redirect("/admin/dashboard");
+  const { next } = await searchParams;
+  const afterLogin = safeAdminPath(next);
+  if (session?.user) redirect(afterLogin);
 
   return (
     <div className="flex flex-1 items-center justify-center px-5 py-20">
@@ -18,7 +25,7 @@ export default async function LoginPage() {
         <p className="mt-2 mb-8 text-center text-sm text-muted-foreground">
           The studio is for Brisa administrators only.
         </p>
-        <LoginForm />
+        <LoginForm next={afterLogin} />
       </div>
     </div>
   );

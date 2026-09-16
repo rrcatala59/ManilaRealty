@@ -42,8 +42,11 @@ create table if not exists public.reservations (
   property_id text not null references public.properties(id) on delete cascade,
   start_date date not null,
   end_date date not null,
-  status text not null default 'placeholder',
-  created_at timestamptz not null default now()
+  guest_name text not null default '',
+  guest_email text not null default '',
+  status text not null default 'pending',
+  created_at timestamptz not null default now(),
+  check (end_date > start_date)
 );
 
 create table if not exists public.profiles (
@@ -114,6 +117,18 @@ create policy "Public can submit inquiries" on public.inquiries
 drop policy if exists "Admins read inquiries" on public.inquiries;
 create policy "Admins read inquiries" on public.inquiries
   for select using (public.is_admin());
+
+drop policy if exists "Public can read reservation windows" on public.reservations;
+create policy "Public can read reservation windows" on public.reservations
+  for select using (status in ('pending', 'confirmed', 'blocked'));
+
+drop policy if exists "Public can request stays" on public.reservations
+  for insert with check (
+    status = 'pending'
+    and end_date > start_date
+    and char_length(guest_name) between 2 and 80
+    and char_length(guest_email) between 5 and 120
+  );
 
 drop policy if exists "Admins manage reservations" on public.reservations;
 create policy "Admins manage reservations" on public.reservations

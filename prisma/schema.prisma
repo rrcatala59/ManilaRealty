@@ -54,7 +54,9 @@ model Reservation {
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   startDate  DateTime
   endDate    DateTime
-  status     String   @default("placeholder")
+  guestName  String   @default("")
+  guestEmail String   @default("")
+  status     String   @default("pending")
   createdAt  DateTime @default(now())
 }
 

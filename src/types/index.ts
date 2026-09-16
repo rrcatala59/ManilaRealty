@@ -95,6 +95,44 @@ export function toInquiryInsert(input: InquiryInput): InquiryInsert {
   };
 }
 
+export type ReservationWindow = {
+  id: string;
+  propertyId: string;
+  startDate: string;
+  endDate: string;
+  status: ReservationStatus;
+};
+
+export const RESERVATION_STATUSES = ["pending", "confirmed", "blocked", "cancelled"] as const;
+export type ReservationStatus = (typeof RESERVATION_STATUSES)[number];
+
+export const bookingRequestSchema = z.object({
+  propertyId: z
+    .string()
+    .trim()
+    .min(8)
+    .max(128)
+    .regex(/^[a-zA-Z0-9_-]+$/),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  guestName: plainText(80).pipe(z.string().min(2)),
+  guestEmail: z.string().trim().email().max(120).transform((value) => value.toLowerCase()),
+});
+
+export type BookingRequest = z.infer<typeof bookingRequestSchema>;
+
+export function toDateKey(value: Date | string) {
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+  const date = typeof value === "string" ? new Date(value) : value;
+  return date.toISOString().slice(0, 10);
+}
+
+export function datesOverlap(aStart: string, aEnd: string, bStart: string, bEnd: string) {
+  return aStart < bEnd && aEnd > bStart;
+}
+
 export function parseStringList(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.filter((item): item is string => typeof item === "string");

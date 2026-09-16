@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 
 const initial: LoginState = {};
 
-export function LoginForm() {
+export function LoginForm({ next = "/admin/dashboard" }: { next?: string }) {
   const [state, action, pending] = useActionState(loginAction, initial);
 
   return (
     <form action={action} className="space-y-4">
+      <input type="hidden" name="next" value={next} />
       <div className="space-y-1.5">
         <Label htmlFor="email">Email</Label>
         <Input
