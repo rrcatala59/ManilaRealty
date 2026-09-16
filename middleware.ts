@@ -1,11 +1,11 @@
 import { type NextRequest } from "next/server";
 import { protectAdminRoute } from "@/src/lib/supabase/middleware";
-import { supabaseAuthConfig } from "@/src/lib/supabase/auth-config";
 
 export async function middleware(request: NextRequest) {
   return protectAdminRoute(request);
 }
 
+// Matcher must be a compile-time literal (Next cannot parse spreads from auth-config).
 export const config = {
-  matcher: [...supabaseAuthConfig.adminMatcher],
+  matcher: ["/admin", "/admin/:path*"],
 };

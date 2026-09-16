@@ -6,6 +6,7 @@
 export const supabaseAuthConfig = {
   loginPath: "/login",
   forbiddenPath: "/",
+  /** Keep in lockstep with the static `config.matcher` in middleware.ts. */
   adminMatcher: ["/admin", "/admin/:path*"] as const,
   adminFlagColumn: "is_admin" as const,
   profileTable: "profiles" as const,
