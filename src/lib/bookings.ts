@@ -10,6 +10,14 @@ import {
   type ReservationWindow,
 } from "@/src/types";
 
+function utcDateOnly(value: string) {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) {
+    throw new Error("Please choose valid check-in and check-out dates.");
+  }
+  return date;
+}
+
 const BLOCKING: ReservationStatus[] = ["pending", "confirmed", "blocked"];
 
 function asWindow(row: Record<string, unknown>): ReservationWindow {
@@ -90,16 +98,24 @@ export async function createStayRequest(raw: BookingRequest | Record<string, str
     return { ok: true as const };
   }
 
-  await prisma.reservation.create({
-    data: {
-      propertyId,
-      startDate: new Date(`${startDate}T00:00:00.000Z`),
-      endDate: new Date(`${endDate}T00:00:00.000Z`),
-      guestName,
-      guestEmail,
-      status: "pending",
-    },
-  });
+  try {
+    await prisma.reservation.create({
+      data: {
+        propertyId,
+        startDate: utcDateOnly(startDate),
+        endDate: utcDateOnly(endDate),
+        guestName,
+        guestEmail,
+        status: "pending",
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Please choose")) {
+      return { ok: false as const, error: error.message };
+    }
+    console.error("createStayRequest", error);
+    return { ok: false as const, error: "We could not hold those dates just now." };
+  }
   return { ok: true as const };
 }
 

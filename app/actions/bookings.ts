@@ -9,18 +9,23 @@ export async function requestStay(
   _prev: BookingState,
   formData: FormData
 ): Promise<BookingState> {
-  const result = await createStayRequest({
-    propertyId: String(formData.get("propertyId") ?? ""),
-    startDate: String(formData.get("startDate") ?? ""),
-    endDate: String(formData.get("endDate") ?? ""),
-    guestName: String(formData.get("guestName") ?? ""),
-    guestEmail: String(formData.get("guestEmail") ?? ""),
-  });
-  if (result.ok) {
-    const propertyId = String(formData.get("propertyId") ?? "");
-    revalidatePath(`/properties/${propertyId}`);
-    revalidatePath("/properties");
-    revalidatePath("/admin/bookings");
+  try {
+    const result = await createStayRequest({
+      propertyId: String(formData.get("propertyId") ?? ""),
+      startDate: String(formData.get("startDate") ?? ""),
+      endDate: String(formData.get("endDate") ?? ""),
+      guestName: String(formData.get("guestName") ?? ""),
+      guestEmail: String(formData.get("guestEmail") ?? ""),
+    });
+    if (result.ok) {
+      const propertyId = String(formData.get("propertyId") ?? "");
+      revalidatePath(`/properties/${propertyId}`);
+      revalidatePath("/properties");
+      revalidatePath("/admin/bookings");
+    }
+    return result;
+  } catch (error) {
+    console.error("requestStay", error);
+    return { ok: false, error: "We could not hold those dates just now." };
   }
-  return result;
 }
