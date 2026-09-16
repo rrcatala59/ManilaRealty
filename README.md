@@ -85,3 +85,18 @@ Stay ranges use exclusive end dates: a confirmed window `2026-09-20` → `2026-0
 | `npm run storage:ensure` | Create/update the public `property-images` Storage bucket |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
+| `npm run test:e2e` | Playwright stay-calendar suite (`e2e/booking.spec.ts`) |
+
+## Design system
+
+Warm cream and sand surfaces, stone greys, and serif headings are locked in [`tailwind.config.ts`](tailwind.config.ts) (Cormorant for `font-heading` / `font-serif`, Outfit for `font-sans`). Tailwind v4 loads that file through `@config` in `app/globals.css`.
+
+## End-to-end tests
+
+Playwright talks to the local app at [http://127.0.0.1:43123](http://127.0.0.1:43123) (`playwright.config.ts` `use.baseURL`). Start the site, then:
+
+```bash
+npx playwright test
+```
+
+`e2e/booking.spec.ts` opens the structural Makati loft (`00000000-0000-0000-0000-000000000001`), asserts the 18–21 Sep 2026 hold (checkout morning of the 22nd still open), and requests an unheld overnight stay.
