@@ -61,14 +61,26 @@ model Reservation {
 }
 
 model Inquiry {
-  id         String   @id @default(cuid())
-  propertyId String
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  name       String
-  email      String
-  phone      String
-  message    String
-  createdAt  DateTime @default(now())
+  id            String                       @id @default(cuid())
+  propertyId    String
+  property      Property                     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name          String
+  email         String
+  phone         String
+  message       String
+  createdAt     DateTime                     @default(now())
+  notifications InquiryNotificationOutbox[]
+}
+
+model InquiryNotificationOutbox {
+  id        String    @id @default(cuid())
+  inquiryId String
+  inquiry   Inquiry   @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  payload   String
+  status    String    @default("pending")
+  error     String?
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
 }
 
 model User {

@@ -16,6 +16,10 @@ import {
   type PropertyRecord,
 } from "@/src/types";
 import type { Prisma } from "@prisma/client";
+import {
+  enqueueLocalInquiryNotification,
+  flushInquiryNotificationOutbox,
+} from "@/src/utils/inquiry-notification";
 
 async function fromPrismaMany(where: Parameters<typeof prisma.property.findMany>[0]) {
   const rows = await prisma.property.findMany(where);
@@ -184,7 +188,7 @@ export async function createInquiry(raw: InquiryInput | Record<string, string>) 
     return { ok: true as const };
   }
 
-  await prisma.inquiry.create({
+  const created = await prisma.inquiry.create({
     data: {
       propertyId: payload.property_id,
       name: payload.name,
@@ -193,5 +197,26 @@ export async function createInquiry(raw: InquiryInput | Record<string, string>) 
       message: payload.message,
     },
   });
+
+  try {
+    const flushed = await flushInquiryNotificationOutbox();
+    if (flushed === 0) {
+      const notice = {
+        inquiryId: created.id,
+        propertyId: created.propertyId,
+        propertyTitle: property.title,
+        name: created.name,
+        email: created.email,
+        phone: created.phone,
+        message: created.message,
+        createdAt: created.createdAt.toISOString(),
+      };
+      await enqueueLocalInquiryNotification(notice);
+      await flushInquiryNotificationOutbox();
+    }
+  } catch (error) {
+    console.error("inquiry notification", error);
+  }
+
   return { ok: true as const };
 }
