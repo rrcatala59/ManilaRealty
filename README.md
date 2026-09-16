@@ -158,7 +158,7 @@ Verify Resend (or the mock log) by submitting the listing inquiry form once.
 - Build command: `npx prisma generate && next build` (or `npm run build` after generate).
 - Output: Next.js App Router (no extra export step).
 - Do not commit `.env`, `prisma/*.db`, or `/public/uploads`.
-- Allow image hosts listed in `next.config.ts` (Unsplash, `*.supabase.co`, Google Cloud Storage). Next.js emits AVIF/WebP; `minimumCacheTTL` is one year.
+- Allow image hosts listed in `next.config.ts` (Unsplash and `*.supabase.co` Storage `/object/public` plus `/render/image/public`). Next.js emits AVIF/WebP, hides `X-Powered-By`, and caches optimized images for one year (`minimumCacheTTL`).
 - [`vercel.json`](vercel.json) sets year-long `Cache-Control` on `/_next/image`, `/images/*`, and `/fonts/*`.
 - Listing photos go through [`src/utils/imageLoader.ts`](src/utils/imageLoader.ts): Supabase `/object/public/` URLs are rewritten to `/render/image/public/` with `width`, `quality`, and `format=origin` so Smart/Globe clients download a resized file, not the admin original. Unsplash and local `/uploads` are unchanged.
 - Health: `GET /` should return 200. Inquiry webhook: `POST /api/notify/inquiry` with `Authorization: Bearer <INQUIRY_NOTIFY_SECRET>`.
