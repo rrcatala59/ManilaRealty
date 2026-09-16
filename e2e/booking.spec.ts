@@ -22,8 +22,8 @@ test.describe("Stay calendar", () => {
     );
 
     const stay = await selectOpenNight(page);
-    await page.getByLabel("Name").fill("Elena Cruz");
-    await page.getByLabel("Email").fill("playwright@brisarealty.ph");
+    await page.locator("#guestName").fill("Elena Cruz");
+    await page.locator("#guestEmail").fill("playwright@brisarealty.ph");
     await page.getByRole("button", { name: "Request these dates" }).click();
 
     await expect(page.getByText("Those nights are requested.")).toBeVisible();
