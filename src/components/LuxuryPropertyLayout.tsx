@@ -13,7 +13,7 @@ export function LuxuryPropertyLayout({
   property: PropertyRecord;
   windows: ReservationWindow[];
 }) {
-  const { lat, lng } = property.coordinates;
+  const { lat, lng, x, y } = property.coordinates;
   const listingRef = property.id.slice(-6).toUpperCase();
 
   return (
@@ -88,10 +88,10 @@ export function LuxuryPropertyLayout({
             <p className="text-[11px] tracking-[0.28em] uppercase text-muted-foreground">04</p>
             <h2 className="font-heading mt-2 text-3xl md:text-4xl">On the map</h2>
             <p className="mt-3 mb-5 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Leaflet canvas centred on the listing coordinates ({lat.toFixed(5)}, {lng.toFixed(5)}) in{" "}
-              {property.city}. OpenStreetMap tiles stand in for a later Google Maps key.
+              Leaflet canvas centred on this listing at x {x.toFixed(5)}, y {y.toFixed(5)} ({lat.toFixed(5)}° N,{" "}
+              {lng.toFixed(5)}° E) in {property.city}.
             </p>
-            <PropertyMap lat={lat} lng={lng} title={property.title} />
+            <PropertyMap coordinates={property.coordinates} title={property.title} />
           </section>
         </div>
 

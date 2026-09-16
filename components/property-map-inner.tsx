@@ -1,6 +1,7 @@
 "use client";
 
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -12,24 +13,28 @@ const icon = L.icon({
   iconAnchor: [12, 41],
 });
 
+function RecenterOnPoint({ x, y }: { x: number; y: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView([y, x], 14);
+  }, [map, x, y]);
+  return null;
+}
+
 export function PropertyMapInner({
-  lat,
-  lng,
+  x,
+  y,
   title,
 }: {
-  lat: number;
-  lng: number;
+  x: number;
+  y: number;
   title: string;
 }) {
-  const position: [number, number] = [lat || 14.5547, lng || 121.0244];
+  const position: [number, number] = [y, x];
 
   return (
-    <MapContainer
-      center={position}
-      zoom={14}
-      scrollWheelZoom={false}
-      className="h-full w-full"
-    >
+    <MapContainer center={position} zoom={14} scrollWheelZoom={false} className="h-full w-full">
+      <RecenterOnPoint x={x} y={y} />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

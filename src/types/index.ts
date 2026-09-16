@@ -27,10 +27,44 @@ export function sanitizePlainText(value: string, max = 2000) {
     .slice(0, max);
 }
 
+/**
+ * Map point in PostGIS order: x = longitude, y = latitude.
+ * Leaflet still consumes [y, x] i.e. [lat, lng].
+ */
 export const coordinatesSchema = z.object({
   lat: z.number().min(PH_BOUNDS.lat.min).max(PH_BOUNDS.lat.max),
   lng: z.number().min(PH_BOUNDS.lng.min).max(PH_BOUNDS.lng.max),
+  x: z.number().min(PH_BOUNDS.lng.min).max(PH_BOUNDS.lng.max),
+  y: z.number().min(PH_BOUNDS.lat.min).max(PH_BOUNDS.lat.max),
 });
+
+export type MapCoordinates = z.infer<typeof coordinatesSchema>;
+
+export function readMapCoordinates(row: Record<string, unknown>): MapCoordinates {
+  const coords = row.coordinates;
+  let lat: number | undefined;
+  let lng: number | undefined;
+
+  if (Array.isArray(coords) && coords.length >= 2) {
+    lng = Number(coords[0]);
+    lat = Number(coords[1]);
+  } else if (coords && typeof coords === "object") {
+    const point = coords as { x?: unknown; y?: unknown; lat?: unknown; lng?: unknown };
+    if (point.y != null) lat = Number(point.y);
+    if (point.x != null) lng = Number(point.x);
+    if (point.lat != null) lat = Number(point.lat);
+    if (point.lng != null) lng = Number(point.lng);
+  }
+
+  if (row.lat != null && row.lat !== "") lat = Number(row.lat);
+  if (row.lng != null && row.lng !== "") lng = Number(row.lng);
+
+  if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+    throw new Error("Listing is missing map coordinates.");
+  }
+
+  return { lat, lng, x: lng, y: lat };
+}
 
 export const propertyRecordSchema = z.object({
   id: z.string().min(1).max(128),
@@ -152,8 +186,7 @@ export function parseStringList(value: unknown): string[] {
 }
 
 export function normalizeProperty(row: Record<string, unknown>): PropertyRecord {
-  const lat = Number(row.lat ?? (row.coordinates as { lat?: number } | undefined)?.lat);
-  const lng = Number(row.lng ?? (row.coordinates as { lng?: number } | undefined)?.lng);
+  const coordinates = readMapCoordinates(row);
 
   const candidate = {
     id: String(row.id ?? ""),
@@ -168,7 +201,7 @@ export function normalizeProperty(row: Record<string, unknown>): PropertyRecord 
     baths: Number(row.baths ?? 0),
     sqm: Number(row.sqm ?? 0),
     amenities: parseStringList(row.amenities),
-    coordinates: { lat, lng },
+    coordinates,
     images: parseStringList(row.images),
     status: row.status,
     isAvailable: Boolean(row.isAvailable ?? row.is_available ?? true),

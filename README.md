@@ -10,7 +10,8 @@ Guests can search condos, houses, and commercial floors across Metro Manila, ope
 - Prisma + SQLite locally (no cloud database required)
 - Optional Supabase client for listings, inquiries, reservations, admin writes, and Storage uploads
 - Auth.js credentials locally; Supabase Auth + `profiles.is_admin` when a project is linked
-- Leaflet + OpenStreetMap for the map stub
+- Leaflet + OpenStreetMap, centred on listing `coordinates.x` (lng) and `coordinates.y` (lat)
+- Global `Header` / `Footer` in the root App Router layout (`app/layout.tsx`)
 - Next.js middleware on `/admin` and `/admin/:path*` (see `src/lib/supabase/auth-config.ts`)
 
 When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, listings, inquiries, and reservation windows go through Supabase. Admin image uploads use the `property-images` Storage bucket if `SUPABASE_SERVICE_ROLE_KEY` is present. Otherwise Prisma + local `/uploads` stay in play.
@@ -58,7 +59,7 @@ Change these in `.env` (`ADMIN_EMAIL`, `ADMIN_PASSWORD`) before re-running `npm 
 
 - **Home** — hero search, featured homes, Manila philosophy
 - **Listings** — filters (city, type, price, bedrooms) and sort (newest, price)
-- **Detail (`/properties/[id]`)** — gallery, specs, amenities, stay calendar against reservation windows (checkout morning is exclusive), Leaflet map, sticky inquiry form
+- **Detail (`/properties/[id]`)** — App Router page loads the raw `properties` row from the Supabase client (Prisma locally), then gallery, stay calendar, and a Leaflet map centred on `coordinates.x` / `coordinates.y`
 - **Studio (`/admin/dashboard`)** — stats, create/edit PropertyForm, multi-image upload
 - **Bookings (`/admin/bookings`)** — pending, confirmed, and blocked stays
 

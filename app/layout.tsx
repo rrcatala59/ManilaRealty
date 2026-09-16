@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Outfit, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { Footer } from "@/src/components/Footer";
+import { Header } from "@/src/components/Header";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -39,7 +41,9 @@ export default function RootLayout({
       className={`${outfit.variable} ${cormorant.variable} ${geistMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
         <Toaster />
       </body>
     </html>

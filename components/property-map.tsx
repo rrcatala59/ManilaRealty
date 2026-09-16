@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { MapCoordinates } from "@/src/types";
 
 const PropertyMapInner = dynamic(() => import("./property-map-inner").then((mod) => mod.PropertyMapInner), {
   ssr: false,
@@ -8,17 +9,20 @@ const PropertyMapInner = dynamic(() => import("./property-map-inner").then((mod)
 });
 
 export function PropertyMap({
-  lat,
-  lng,
+  coordinates,
   title,
 }: {
-  lat: number;
-  lng: number;
+  coordinates: Pick<MapCoordinates, "x" | "y">;
   title: string;
 }) {
   return (
-    <div className="h-[360px] overflow-hidden rounded-sm ring-1 ring-border">
-      <PropertyMapInner lat={lat} lng={lng} title={title} />
+    <div
+      data-map-placeholder="listing"
+      data-map-x={coordinates.x}
+      data-map-y={coordinates.y}
+      className="h-[360px] overflow-hidden rounded-sm ring-1 ring-border"
+    >
+      <PropertyMapInner x={coordinates.x} y={coordinates.y} title={title} />
     </div>
   );
 }
