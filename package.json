@@ -10,6 +10,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:setup": "prisma db push && prisma db seed",
+    "db:migrate:supabase": "tsx scripts/apply-supabase-migration.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -18,6 +19,7 @@
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@prisma/client": "^6.19.3",
+    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.116.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
@@ -28,6 +30,7 @@
     "next": "16.3.5",
     "next-auth": "^5.0.0-beta.32",
     "next-themes": "^0.4.6",
+    "pg": "^8.23.0",
     "prisma": "^6.19.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -43,6 +46,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

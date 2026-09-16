@@ -8,7 +8,7 @@ export const metadata = {
 
 export default async function LoginPage() {
   const session = await auth();
-  if (session?.user) redirect("/admin");
+  if (session?.user) redirect("/admin/dashboard");
 
   return (
     <div className="flex flex-1 items-center justify-center px-5 py-20">

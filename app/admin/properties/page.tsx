@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { formatPHP, typeLabel } from "@/lib/format";
 import { deleteProperty } from "@/app/actions/properties";
+import { listAdminProperties } from "@/src/lib/admin";
 
 export const metadata = {
   title: "Listings",
 };
 
 export default async function AdminPropertiesPage() {
-  const properties = await prisma.property.findMany({ orderBy: { updatedAt: "desc" } });
+  const properties = await listAdminProperties();
 
   return (
     <div>
@@ -18,7 +18,7 @@ export default async function AdminPropertiesPage() {
           <h1 className="font-heading mt-1 text-4xl">Listings</h1>
         </div>
         <Link
-          href="/admin/properties/new"
+          href="/admin/dashboard"
           className="bg-primary px-4 py-2.5 text-[11px] tracking-[0.16em] uppercase text-primary-foreground"
         >
           Add property
@@ -46,7 +46,7 @@ export default async function AdminPropertiesPage() {
                 <td className="px-4 py-3">{property.status}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">
-                    <Link href={`/admin/properties/${property.id}`} className="underline underline-offset-2">
+                    <Link href={`/admin/dashboard?edit=${property.id}`} className="underline underline-offset-2">
                       Edit
                     </Link>
                     <form

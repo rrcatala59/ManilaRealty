@@ -1,14 +1,11 @@
-import { prisma } from "@/lib/prisma";
+import { listAdminInquiries } from "@/src/lib/admin";
 
 export const metadata = {
   title: "Inquiries",
 };
 
 export default async function AdminInquiriesPage() {
-  const inquiries = await prisma.inquiry.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { property: { select: { title: true, slug: true } } },
-  });
+  const inquiries = await listAdminInquiries();
 
   return (
     <div>
@@ -25,11 +22,11 @@ export default async function AdminInquiriesPage() {
                   {inquiry.name} · {inquiry.email} · {inquiry.phone}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {inquiry.createdAt.toLocaleString("en-PH")}
+                  {new Date(inquiry.createdAt).toLocaleString("en-PH")}
                 </p>
               </div>
               <p className="mt-1 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                {inquiry.property.title} · ID {inquiry.propertyId}
+                {inquiry.propertyTitle} · ID {inquiry.propertyId}
               </p>
               <p className="mt-3 text-sm leading-relaxed">{inquiry.message}</p>
             </li>

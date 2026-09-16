@@ -27,7 +27,7 @@ export async function SiteHeader() {
             </Link>
           ))}
           {session?.user ? (
-            <Link href="/admin" className="transition-opacity hover:opacity-60">
+            <Link href="/admin/dashboard" className="transition-opacity hover:opacity-60">
               Admin
             </Link>
           ) : (

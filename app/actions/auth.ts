@@ -10,7 +10,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     await signIn("credentials", {
       email: String(formData.get("email") ?? ""),
       password: String(formData.get("password") ?? ""),
-      redirectTo: "/admin",
+      redirectTo: "/admin/dashboard",
     });
     return {};
   } catch (error) {
