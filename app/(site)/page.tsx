@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { PropertyCard } from "@/src/components/PropertyCard";
-import { SearchBar } from "@/components/search-bar";
-import { listFeaturedProperties } from "@/src/lib/listings";
+import { SearchFilterEngine } from "@/src/components/SearchFilterEngine";
+import { listProperties } from "@/src/lib/listings";
 
 const HERO =
   "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2000&q=80";
@@ -16,7 +15,7 @@ const PHILOSOPHY = [
   {
     num: "02",
     title: "Manila footprint",
-    body: "Makati, BGC, Quezon City, Pasig, Pasay, Alabang. Advisors who walk the buildings they recommend.",
+    body: "Makati, BGC, New Manila, Quezon City, Pasig, Pasay, Alabang. Advisors who walk the buildings they recommend.",
   },
   {
     num: "03",
@@ -26,14 +25,14 @@ const PHILOSOPHY = [
 ];
 
 export default async function HomePage() {
-  const featured = await listFeaturedProperties();
+  const listings = await listProperties();
 
   return (
     <>
-      <section className="relative min-h-[88vh] text-primary-foreground">
+      <section className="relative min-h-[78vh] text-primary-foreground">
         <Image src={HERO} alt="Manila skyline" fill priority className="object-cover" sizes="100vw" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/35 to-black/25" />
-        <div className="relative mx-auto flex min-h-[88vh] max-w-7xl flex-col justify-end gap-10 px-5 pb-16 pt-28 md:px-8 md:pb-20">
+        <div className="relative mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-end gap-10 px-5 pb-20 pt-28 md:px-8 md:pb-24">
           <div className="max-w-2xl">
             <p className="text-[11px] tracking-[0.32em] uppercase text-white/70">Manila · Private brokerage</p>
             <h1 className="font-heading mt-4 text-5xl leading-[0.95] text-white md:text-7xl">
@@ -41,33 +40,13 @@ export default async function HomePage() {
             </h1>
             <p className="mt-5 max-w-lg text-base leading-relaxed text-white/80 md:text-lg">
               Considered condos, houses, and commercial floors across Metro Manila — sourced quietly, presented
-              without noise.
+              without noise. Filter by area, category, and size as you browse.
             </p>
           </div>
-          <SearchBar />
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-28">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <div>
-            <p className="text-[11px] tracking-[0.28em] uppercase text-muted-foreground">Featured</p>
-            <h2 className="font-heading mt-2 text-4xl md:text-5xl">Homes currently in play</h2>
-          </div>
-          <Link href="/properties" className="text-[11px] tracking-[0.22em] uppercase underline underline-offset-4">
-            View all listings
-          </Link>
-        </div>
-        {featured.length === 0 ? (
-          <p className="mt-12 text-muted-foreground">No featured listings yet. Check the full catalogue.</p>
-        ) : (
-          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((property) => (
-              <PropertyCard key={property.id} property={property} />
-            ))}
-          </div>
-        )}
-      </section>
+      <SearchFilterEngine initialProperties={listings} />
 
       <section className="border-y border-border bg-card">
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 md:grid-cols-2 md:px-8 md:py-28">

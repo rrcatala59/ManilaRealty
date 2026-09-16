@@ -1,6 +1,7 @@
 export const CITIES = [
   "Makati",
   "BGC",
+  "New Manila",
   "Quezon City",
   "Pasay",
   "Pasig",

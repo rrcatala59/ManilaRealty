@@ -2,10 +2,14 @@ import type { PropertyStatus } from "@/src/types";
 
 export type ListingFilters = {
   city?: string;
+  area?: string;
   type?: string;
+  category?: string;
   price?: string;
   beds?: string;
   sort?: string;
+  sqm?: string;
+  minSqm?: string;
 };
 
 export function statusTone(status: PropertyStatus) {

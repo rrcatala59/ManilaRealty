@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:supabase": "tsx supabase/seed.ts",
     "db:setup": "prisma db push && prisma db seed",
     "db:migrate:supabase": "tsx scripts/apply-supabase-migration.ts",
     "postinstall": "prisma generate"

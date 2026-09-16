@@ -365,6 +365,9 @@ async function main() {
     });
   }
 
+  const { seedStructuralRecords } = await import("../supabase/seed");
+  await seedStructuralRecords(prisma);
+
   console.log(`Seeded ${properties.length} properties, stays, and admin ${email}`);
 }
 

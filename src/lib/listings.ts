@@ -3,24 +3,72 @@ import { PRICE_RANGES } from "@/lib/constants";
 import type { ListingFilters } from "@/lib/properties";
 import { getSupabase } from "@/src/lib/supabase";
 import {
+  buildSearchClauses,
+  sanitizeSearchClauses,
+  type SearchFilterClause,
+} from "@/src/lib/search-filters";
+import {
   inquiryInputSchema,
   normalizeProperty,
   toInquiryInsert,
   type InquiryInput,
   type PropertyRecord,
 } from "@/src/types";
+import type { Prisma } from "@prisma/client";
 
 async function fromPrismaMany(where: Parameters<typeof prisma.property.findMany>[0]) {
   const rows = await prisma.property.findMany(where);
   return rows.map((row) => normalizeProperty(row as unknown as Record<string, unknown>));
 }
 
-export async function listProperties(filters: ListingFilters = {}): Promise<PropertyRecord[]> {
+function clausesFromListingFilters(filters: ListingFilters): SearchFilterClause[] {
+  return buildSearchClauses({
+    area: filters.area || filters.city || "",
+    category: filters.category || filters.type || "",
+    minSqm: filters.minSqm || filters.sqm || "",
+  });
+}
+
+function prismaWhereFromClauses(clauses: SearchFilterClause[]): Prisma.PropertyWhereInput {
+  const where: Prisma.PropertyWhereInput = {};
+  for (const clause of clauses) {
+    if (clause.column === "city" && clause.op === "eq") where.city = String(clause.value);
+    if (clause.column === "type" && clause.op === "eq") {
+      where.type = clause.value as "CONDO" | "HOUSE" | "COMMERCIAL";
+    }
+    if (clause.column === "sqm" && clause.op === "gte") where.sqm = { gte: Number(clause.value) };
+  }
+  return where;
+}
+
+export async function listPropertiesByClauses(clauses: SearchFilterClause[]): Promise<PropertyRecord[]> {
+  const safe = sanitizeSearchClauses(clauses);
   const supabase = getSupabase();
   if (supabase) {
     let query = supabase.from("properties").select("*");
-    if (filters.city) query = query.eq("city", filters.city);
-    if (filters.type) query = query.eq("type", filters.type);
+    for (const clause of safe) {
+      query = clause.op === "gte" ? query.gte(clause.column, clause.value) : query.eq(clause.column, clause.value);
+    }
+    query = query.order("created_at", { ascending: false });
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => normalizeProperty(row as Record<string, unknown>));
+  }
+
+  return fromPrismaMany({
+    where: prismaWhereFromClauses(safe),
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function listProperties(filters: ListingFilters = {}): Promise<PropertyRecord[]> {
+  const clauses = clausesFromListingFilters(filters);
+  const supabase = getSupabase();
+  if (supabase) {
+    let query = supabase.from("properties").select("*");
+    for (const clause of clauses) {
+      query = clause.op === "gte" ? query.gte(clause.column, clause.value) : query.eq(clause.column, clause.value);
+    }
     if (filters.beds) query = query.gte("beds", Number(filters.beds));
     if (filters.price) {
       const range = PRICE_RANGES.find((item) => item.value === filters.price);
@@ -38,10 +86,7 @@ export async function listProperties(filters: ListingFilters = {}): Promise<Prop
 
   const rows = await fromPrismaMany({
     where: {
-      ...(filters.city ? { city: filters.city } : {}),
-      ...(filters.type && ["CONDO", "HOUSE", "COMMERCIAL"].includes(filters.type)
-        ? { type: filters.type as "CONDO" | "HOUSE" | "COMMERCIAL" }
-        : {}),
+      ...prismaWhereFromClauses(clauses),
       ...(filters.beds ? { beds: { gte: Number(filters.beds) } } : {}),
       ...(filters.price
         ? (() => {

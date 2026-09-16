@@ -160,6 +160,9 @@ export function BookingCalendar({
               key={key}
               type="button"
               disabled={disabled}
+              data-date={key}
+              data-held={isBlocked ? "true" : "false"}
+              aria-disabled={disabled}
               onClick={() => selectDay(key)}
               className={cn(
                 "aspect-square text-sm transition-colors",

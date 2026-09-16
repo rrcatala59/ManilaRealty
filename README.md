@@ -57,13 +57,13 @@ Change these in `.env` (`ADMIN_EMAIL`, `ADMIN_PASSWORD`) before re-running `npm 
 
 ## What you can do
 
-- **Home** — hero search, featured homes, Manila philosophy
+- **Home** — live SearchFilterEngine (area, category, minimum size) against the listings query chain
 - **Listings** — filters (city, type, price, bedrooms) and sort (newest, price)
-- **Detail (`/properties/[id]`)** — App Router page loads the raw `properties` row from the Supabase client (Prisma locally), then gallery, stay calendar, and a Leaflet map centred on `coordinates.x` / `coordinates.y`
+- **Detail (`/properties/[id]`)** — App Router page loads the raw `properties` row from the Supabase client (Prisma locally), then gallery, stay calendar, and a Leaflet map centred on `coordinates.x` / `coordinates.y`. Structural seed listing `00000000-0000-0000-0000-000000000001` has 18–21 Sep 2026 held.
 - **Studio (`/admin/dashboard`)** — stats, create/edit PropertyForm, multi-image upload
 - **Bookings (`/admin/bookings`)** — pending, confirmed, and blocked stays
 
-Seeded holds (September–October 2026) live on High Street Penthouse and Sky Residences so the calendar has blocked nights on first load.
+Seeded holds (September–October 2026) live on High Street Penthouse, Sky Residences, and the structural Makati loft (`00000000-0000-0000-0000-000000000001`, 18→22 Sep). `npm run db:seed:supabase` upserts Makati, BGC, and New Manila test homes into the local Prisma database.
 
 Stay ranges use exclusive end dates: a confirmed window `2026-09-20` → `2026-09-24` occupies the nights of the 20th–23rd; the 24th morning is free for checkout or a new check-in.
 
@@ -73,6 +73,7 @@ Stay ranges use exclusive end dates: a confirmed window `2026-09-20` → `2026-0
 | --- | --- |
 | `npm run dev` | Dev server on port 43123 |
 | `npm run db:setup` | Push Prisma schema and seed listings, admin, and sample stays |
+| `npm run db:seed:supabase` | Upsert structural Makati / BGC / New Manila records via `supabase/seed.ts` |
 | `npm run db:migrate:supabase` | Apply RLS schema to a hosted Supabase project |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
