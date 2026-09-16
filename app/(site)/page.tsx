@@ -4,6 +4,7 @@ import { SearchFilterEngine } from "@/src/components/SearchFilterEngine";
 import { fetchHomeProperties } from "@/src/lib/listings";
 import { formatPHP } from "@/lib/format";
 import type { PropertyRecord } from "@/src/types";
+import { getOptimizedImageUrl } from "@/src/utils/imageLoader";
 
 const FALLBACK_HERO =
   "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2000&q=80";
@@ -45,7 +46,7 @@ export default async function HomePage() {
     <>
       <section className="relative min-h-[88vh] text-primary-foreground">
         <Image
-          src={heroImage}
+          src={getOptimizedImageUrl({ url: heroImage, width: 1920, quality: 80 })}
           alt={hero ? hero.title : "Manila skyline"}
           fill
           priority

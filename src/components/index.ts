@@ -1,4 +1,5 @@
 export { PropertyCard } from "./PropertyCard";
+export { PropertyCardImage } from "./blocks/PropertyCard";
 export { InquiryForm } from "./InquiryForm";
 export { LuxuryPropertyLayout } from "./LuxuryPropertyLayout";
 export { PropertyForm } from "./PropertyForm";

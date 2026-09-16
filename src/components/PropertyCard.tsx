@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Bath, BedDouble, Maximize } from "lucide-react";
 import { ImageCarousel } from "@/components/image-carousel";
+import { PropertyCardImage } from "@/src/components/blocks/PropertyCard";
 import { formatPHP, typeLabel } from "@/lib/format";
 import { statusTone } from "@/lib/properties";
 import { cn } from "@/lib/utils";
@@ -16,7 +17,11 @@ export function PropertyCard({ property }: { property: PropertyRecord }) {
     >
       <article className="overflow-hidden rounded-sm bg-card shadow-[0_1px_0_rgba(28,25,23,0.06)] ring-1 ring-border/80">
         <div className="relative aspect-[4/3]">
-          <ImageCarousel images={images} alt={property.title} className="absolute inset-0" />
+          {images.length > 1 ? (
+            <ImageCarousel images={images} alt={property.title} className="absolute inset-0" />
+          ) : (
+            <PropertyCardImage src={images[0] ?? ""} title={property.title} />
+          )}
           <span
             className={cn(
               "absolute top-3 left-3 z-10 px-2.5 py-1 text-[10px] tracking-[0.18em] uppercase",

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getOptimizedImageUrl } from "@/src/utils/imageLoader";
 
 export function ImageCarousel({
   images,
@@ -21,7 +22,7 @@ export function ImageCarousel({
   return (
     <div className={cn("group relative overflow-hidden bg-muted", className)}>
       <Image
-        src={current}
+        src={getOptimizedImageUrl({ url: current, width: 800, quality: 75 })}
         alt={alt}
         fill
         sizes="(max-width: 768px) 100vw, 33vw"

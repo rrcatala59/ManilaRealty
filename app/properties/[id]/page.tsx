@@ -4,6 +4,7 @@ import { LuxuryPropertyLayout } from "@/src/components/LuxuryPropertyLayout";
 import { listReservationWindows } from "@/src/lib/bookings";
 import { getSupabase } from "@/src/lib/supabase";
 import { normalizeProperty } from "@/src/types";
+import { optimizeImageList } from "@/src/utils/imageLoader";
 
 type PropertyPageContext = {
   params: Promise<{ id: string }>;
@@ -45,6 +46,7 @@ export default async function PropertyByIdPage(context: PropertyPageContext) {
 
   const property = normalizeProperty(row);
   const windows = await listReservationWindows(property.id);
+  const images = optimizeImageList(property.images, 1600, 80);
 
-  return <LuxuryPropertyLayout property={property} windows={windows} />;
+  return <LuxuryPropertyLayout property={{ ...property, images }} windows={windows} />;
 }

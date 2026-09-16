@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { getOptimizedImageUrl } from "@/src/utils/imageLoader";
 
 export function PropertyGallery({ images, title }: { images: string[]; title: string }) {
   const [active, setActive] = useState(0);
@@ -16,7 +17,7 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
     <div className="grid gap-3 md:grid-cols-[1.4fr_0.8fr]">
       <div className="relative aspect-[4/3] overflow-hidden bg-muted md:aspect-auto md:min-h-[420px]">
         <Image
-          src={photos[active]}
+          src={getOptimizedImageUrl({ url: photos[active], width: 1600, quality: 80 })}
           alt={title}
           fill
           priority
@@ -35,7 +36,13 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
               active === index ? "opacity-100" : "opacity-70 hover:opacity-100"
             )}
           >
-            <Image src={src} alt="" fill className="object-cover" sizes="25vw" />
+            <Image
+              src={getOptimizedImageUrl({ url: src, width: 480, quality: 70 })}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="25vw"
+            />
           </button>
         ))}
       </div>
