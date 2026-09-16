@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { saveProperty } from "@/app/actions/properties";
 import type { PropertyRecord } from "@/src/types";
+import { mergeImagePaths, parseImagePathList, uploadPropertyImages } from "@/src/utils/storage";
 
 const field = "h-11 rounded-sm";
 
@@ -16,23 +17,15 @@ export function PropertyForm({ property }: { property?: PropertyRecord }) {
   const [images, setImages] = useState(property?.images.join("\n") ?? "");
   const [amenities, setAmenities] = useState<string[]>(property?.amenities ?? []);
   const [uploading, setUploading] = useState(false);
-  const imageList = images.split("\n").map((item) => item.trim()).filter(Boolean);
+  const imageList = parseImagePathList(images);
 
   async function onUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
     if (files.length === 0) return;
     setUploading(true);
     try {
-      const uploaded: string[] = [];
-      for (const file of files) {
-        const body = new FormData();
-        body.append("file", file);
-        const response = await fetch("/api/admin/upload", { method: "POST", body });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Upload failed");
-        uploaded.push(data.url as string);
-      }
-      setImages((prev) => [prev, ...uploaded].filter(Boolean).join("\n"));
+      const uploaded = await uploadPropertyImages(files);
+      setImages((prev) => mergeImagePaths(prev, uploaded));
       toast.success(uploaded.length === 1 ? "Image uploaded" : `${uploaded.length} images uploaded`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Upload failed");
@@ -197,7 +190,7 @@ export function PropertyForm({ property }: { property?: PropertyRecord }) {
             onChange={onUpload}
           />
           <span className="text-xs text-muted-foreground">
-            Stored in Supabase Storage when configured, otherwise local /uploads.
+            Stored in the public `property-images` bucket when Supabase is linked, otherwise local /uploads.
           </span>
         </div>
         <Textarea

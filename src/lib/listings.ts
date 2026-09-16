@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { PRICE_RANGES } from "@/lib/constants";
 import type { ListingFilters } from "@/lib/properties";
 import { getSupabase } from "@/src/lib/supabase";
+import { createServerSupabase } from "@/src/lib/supabase/server";
 import {
   buildSearchClauses,
   sanitizeSearchClauses,
@@ -109,6 +110,20 @@ export async function listProperties(filters: ListingFilters = {}): Promise<Prop
           : { createdAt: "desc" },
   });
   return rows;
+}
+
+export async function fetchHomeProperties(): Promise<PropertyRecord[]> {
+  const supabase = await createServerSupabase();
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("properties")
+      .select("*")
+      .order("is_featured", { ascending: false })
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => normalizeProperty(row as Record<string, unknown>));
+  }
+  return listProperties();
 }
 
 export async function listFeaturedProperties(): Promise<PropertyRecord[]> {

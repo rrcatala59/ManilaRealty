@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { isSupabaseConfigured } from "@/src/lib/supabase";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { hasAdminFlag, supabaseAuthConfig } from "@/src/lib/supabase/auth-config";
+import { createServerSupabase } from "@/src/lib/supabase/server";
+import { cookies } from "next/headers";
 
 export type AdminIdentity = {
   id: string;
@@ -11,29 +11,9 @@ export type AdminIdentity = {
   isAdmin: true;
 };
 
-export async function requireAdmin(): Promise<AdminIdentity> {
-  if (isSupabaseConfigured()) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => {
-                cookieStore.set(name, value, options);
-              });
-            } catch {
-              // Server Components cannot always persist refreshed auth cookies.
-            }
-          },
-        },
-      }
-    );
+export async function getAdminOrNull(): Promise<AdminIdentity | null> {
+  const supabase = await createServerSupabase();
+  if (supabase) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -46,13 +26,28 @@ export async function requireAdmin(): Promise<AdminIdentity> {
       if (hasAdminFlag(profile)) {
         return { id: user.id, email: user.email, isAdmin: true };
       }
-      redirect(supabaseAuthConfig.forbiddenPath);
+      return null;
     }
   }
 
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/login");
+    return null;
   }
   return { id: session.user.id, email: session.user.email, isAdmin: true };
+}
+
+export async function requireAdmin(): Promise<AdminIdentity> {
+  const admin = await getAdminOrNull();
+  if (admin) return admin;
+
+  if (isSupabaseConfigured()) {
+    const cookieStore = await cookies();
+    const hasSupabaseUser = cookieStore.getAll().some((cookie) => cookie.name.includes("sb-"));
+    if (hasSupabaseUser) {
+      redirect(supabaseAuthConfig.forbiddenPath);
+    }
+  }
+
+  redirect("/login");
 }

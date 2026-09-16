@@ -12,6 +12,7 @@
     "db:seed:supabase": "tsx supabase/seed.ts",
     "db:setup": "prisma db push && prisma db seed",
     "db:migrate:supabase": "tsx scripts/apply-supabase-migration.ts",
+    "storage:ensure": "tsx scripts/ensure-storage-bucket.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
