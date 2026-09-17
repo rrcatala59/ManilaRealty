@@ -1,10 +1,11 @@
 {
   "name": "Brisa Realty",
   "install": "bash .cursor/install.sh",
+  "ports": [43123],
   "terminals": [
     {
       "name": "dev",
-      "command": "npm run dev"
+      "command": "npm run dev -- --hostname 0.0.0.0"
     }
   ]
 }
