@@ -30,6 +30,10 @@ export async function getAdminOrNull(): Promise<AdminIdentity | null> {
     }
   }
 
+  if (!process.env.AUTH_SECRET) {
+    return null;
+  }
+
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") {
     return null;

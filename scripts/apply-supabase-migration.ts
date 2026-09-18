@@ -1,8 +1,10 @@
 import { Client } from "pg";
 import { readdir, readFile } from "fs/promises";
 import path from "path";
+import { loadProjectEnv } from "./load-env";
 
 async function main() {
+  loadProjectEnv();
   const connectionString = process.env.SUPABASE_DB_URL;
   const dir = path.join(process.cwd(), "supabase/migrations");
   const files = (await readdir(dir)).filter((name) => name.endsWith(".sql")).sort();

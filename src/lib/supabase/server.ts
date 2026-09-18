@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { isSupabaseConfigured } from "@/src/lib/supabase";
+import { isSupabaseConfigured, supabaseAnonKey, supabaseProjectUrl } from "@/src/lib/supabase/env";
 
 /** Cookie-aware server client for RSC and route handlers. */
 export async function createServerSupabase() {
@@ -8,8 +8,8 @@ export async function createServerSupabase() {
 
   const cookieStore = await cookies();
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseProjectUrl(),
+    supabaseAnonKey(),
     {
       cookies: {
         getAll() {

@@ -1,3 +1,4 @@
+import { loadProjectEnv } from "./load-env";
 import { getServiceSupabase } from "@/src/lib/supabase";
 import {
   ACCEPTED_IMAGE_TYPES,
@@ -6,6 +7,7 @@ import {
 } from "@/src/utils/storage";
 
 async function main() {
+  loadProjectEnv();
   const supabase = getServiceSupabase();
   if (!supabase) {
     console.log(

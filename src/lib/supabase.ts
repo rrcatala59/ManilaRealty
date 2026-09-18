@@ -1,15 +1,13 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { isSupabaseConfigured, supabaseAnonKey, supabaseProjectUrl } from "@/src/lib/supabase/env";
 
-export function isSupabaseConfigured() {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-}
+export { isSupabaseConfigured, supabaseAnonKey, supabaseProjectUrl };
 
+/** Server-side data client (no browser session). Listings, inquiries, bookings. */
 export function createSupabaseClient(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return null;
+  if (!isSupabaseConfigured()) return null;
 
-  return createClient(url, anonKey, {
+  return createClient(supabaseProjectUrl(), supabaseAnonKey(), {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -27,8 +25,8 @@ export function getSupabase(): SupabaseClient | null {
 }
 
 export function getServiceSupabase(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = supabaseProjectUrl();
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (!url || !serviceKey) return null;
   return createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },

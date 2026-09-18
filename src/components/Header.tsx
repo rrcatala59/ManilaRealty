@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth } from "@/auth";
+import { getAdminOrNull } from "@/src/lib/auth-guard";
 
 const links = [
   { href: "/properties", label: "Listings" },
@@ -7,7 +7,7 @@ const links = [
 ];
 
 export async function Header() {
-  const session = await auth();
+  const admin = await getAdminOrNull();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur-md">
@@ -26,7 +26,7 @@ export async function Header() {
               {link.label}
             </Link>
           ))}
-          {session?.user ? (
+          {admin ? (
             <Link href="/admin/dashboard" className="transition-opacity hover:opacity-60">
               Admin
             </Link>

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { LoginForm } from "@/components/login-form";
+import { getAdminOrNull } from "@/src/lib/auth-guard";
 import { safeAdminPath } from "@/src/lib/supabase/auth-config";
 
 export const metadata = {
@@ -12,10 +12,9 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ next?: string }>;
 }) {
-  const session = await auth();
   const { next } = await searchParams;
   const afterLogin = safeAdminPath(next);
-  if (session?.user) redirect(afterLogin);
+  if (await getAdminOrNull()) redirect(afterLogin);
 
   return (
     <div className="flex flex-1 items-center justify-center px-5 py-20">

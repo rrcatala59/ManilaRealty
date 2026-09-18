@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isSupabaseConfigured } from "@/src/lib/supabase";
+import { isSupabaseConfigured, supabaseAnonKey, supabaseProjectUrl } from "@/src/lib/supabase/env";
 import { ADMIN_SESSION_COOKIES, hasAdminFlag, supabaseAuthConfig } from "@/src/lib/supabase/auth-config";
 
 function hasLocalAdminCookie(request: NextRequest) {
@@ -28,8 +28,8 @@ export async function protectAdminRoute(request: NextRequest) {
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseProjectUrl(),
+    supabaseAnonKey(),
     {
       cookies: {
         getAll() {

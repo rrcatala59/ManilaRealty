@@ -1,7 +1,7 @@
 import { PrismaClient, PropertyStatus, PropertyType } from "@prisma/client";
+import { loadProjectEnv } from "../scripts/load-env";
+import { getServiceSupabase } from "../src/lib/supabase";
 import { STRUCTURAL_PROPERTY_ID } from "../src/lib/search-filters";
-
-const prisma = new PrismaClient();
 
 function unsplash(id: string) {
   return `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1600&q=80`;
@@ -90,7 +90,62 @@ const structuralProperties = [
   },
 ];
 
-export async function seedStructuralRecords(client: PrismaClient = prisma) {
+function toSupabaseProperty(property: (typeof structuralProperties)[number]) {
+  return {
+    id: property.id,
+    title: property.title,
+    slug: property.slug,
+    description: property.description,
+    price: property.price,
+    city: property.city,
+    address: property.address,
+    type: property.type,
+    beds: property.beds,
+    baths: property.baths,
+    sqm: property.sqm,
+    amenities: property.amenities,
+    lat: property.lat,
+    lng: property.lng,
+    images: property.images,
+    status: property.status,
+    is_available: property.isAvailable,
+    is_featured: property.isFeatured,
+  };
+}
+
+export async function seedHostedSupabase() {
+  const supabase = getServiceSupabase();
+  if (!supabase) return false;
+
+  for (const property of structuralProperties) {
+    const { error } = await supabase.from("properties").upsert(toSupabaseProperty(property));
+    if (error) throw new Error(error.message);
+  }
+
+  const { error: clearError } = await supabase
+    .from("reservations")
+    .delete()
+    .eq("property_id", STRUCTURAL_PROPERTY_ID);
+  if (clearError) throw new Error(clearError.message);
+
+  const { error: holdError } = await supabase.from("reservations").insert({
+    property_id: STRUCTURAL_PROPERTY_ID,
+    start_date: STRUCTURAL_SEED_HOLD.startDate,
+    end_date: STRUCTURAL_SEED_HOLD.endDate,
+    guest_name: "Structural seed hold",
+    guest_email: "seed@brisarealty.ph",
+    status: "confirmed",
+  });
+  if (holdError) throw new Error(holdError.message);
+
+  console.log(
+    `Supabase seed: Makati, BGC, New Manila. Calendar hold ${STRUCTURAL_SEED_HOLD.startDate} → ${STRUCTURAL_SEED_HOLD.endDate} on ${STRUCTURAL_PROPERTY_ID}`
+  );
+  return true;
+}
+
+export async function seedStructuralRecords(client?: PrismaClient) {
+  const db = client ?? new PrismaClient();
   for (const property of structuralProperties) {
     const data = {
       title: property.title,
@@ -112,15 +167,15 @@ export async function seedStructuralRecords(client: PrismaClient = prisma) {
       isFeatured: property.isFeatured,
     };
 
-    await client.property.upsert({
+    await db.property.upsert({
       where: { id: property.id },
       create: { id: property.id, ...data },
       update: data,
     });
   }
 
-  await client.reservation.deleteMany({ where: { propertyId: STRUCTURAL_PROPERTY_ID } });
-  await client.reservation.create({
+  await db.reservation.deleteMany({ where: { propertyId: STRUCTURAL_PROPERTY_ID } });
+  await db.reservation.create({
     data: {
       propertyId: STRUCTURAL_PROPERTY_ID,
       startDate: new Date(`${STRUCTURAL_SEED_HOLD.startDate}T00:00:00.000Z`),
@@ -134,16 +189,23 @@ export async function seedStructuralRecords(client: PrismaClient = prisma) {
   console.log(
     `Structural seed: Makati, BGC, New Manila. Calendar hold ${STRUCTURAL_SEED_HOLD.startDate} → ${STRUCTURAL_SEED_HOLD.endDate} on ${STRUCTURAL_PROPERTY_ID}`
   );
+
+  if (!client) await db.$disconnect();
 }
 
 const isDirectRun = process.argv[1]?.includes("supabase/seed");
 if (isDirectRun) {
-  seedStructuralRecords()
-    .catch((error) => {
-      console.error(error);
-      process.exit(1);
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
-    });
+  loadProjectEnv();
+  (async () => {
+    if (await seedHostedSupabase()) return;
+    if (!process.env.DATABASE_URL) {
+      throw new Error(
+        "Set SUPABASE_SERVICE_ROLE_KEY to seed the hosted project, or DATABASE_URL for local Prisma."
+      );
+    }
+    await seedStructuralRecords();
+  })().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
 }
