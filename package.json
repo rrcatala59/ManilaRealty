@@ -22,6 +22,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@aws-amplify/backend": "^1.25.0",
     "@base-ui/react": "^1.8.0",
     "@prisma/client": "^6.19.3",
     "@supabase/ssr": "^0.12.7",
