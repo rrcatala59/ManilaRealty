@@ -62,8 +62,13 @@ create table if not exists public.reservations (
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   is_admin boolean not null default false,
+  is_master boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+create unique index if not exists profiles_one_master
+  on public.profiles (is_master)
+  where is_master;
 
 create table if not exists public.inquiry_notification_outbox (
   id uuid primary key default gen_random_uuid(),
@@ -106,8 +111,8 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, is_admin)
-  values (new.id, false)
+  insert into public.profiles (id, is_admin, is_master)
+  values (new.id, false, false)
   on conflict (id) do nothing;
   return new;
 end;

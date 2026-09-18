@@ -7,6 +7,7 @@ const nav = [
   { href: "/admin/properties", label: "Listings" },
   { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/inquiries", label: "Inquiries" },
+  { href: "/admin/administrators", label: "Administrators" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

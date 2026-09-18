@@ -27,9 +27,19 @@ export async function Header() {
             </Link>
           ))}
           {admin ? (
-            <Link href="/admin/dashboard" className="transition-opacity hover:opacity-60">
-              Admin
-            </Link>
+            <details className="relative">
+              <summary className="cursor-pointer list-none transition-opacity hover:opacity-60 [&::-webkit-details-marker]:hidden">
+                Admin
+              </summary>
+              <div className="absolute right-0 z-50 mt-3 min-w-48 border border-border bg-card p-3 text-[11px] tracking-[0.18em] shadow-sm">
+                <Link href="/admin/dashboard" className="block py-1.5 hover:opacity-60">
+                  Studio
+                </Link>
+                <Link href="/admin/administrators" className="block py-1.5 hover:opacity-60">
+                  Administrators
+                </Link>
+              </div>
+            </details>
           ) : (
             <Link href="/login" className="transition-opacity hover:opacity-60">
               Login

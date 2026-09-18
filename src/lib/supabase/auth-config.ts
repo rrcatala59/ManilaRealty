@@ -22,6 +22,11 @@ export function hasAdminFlag(profile: unknown): boolean {
   return Boolean((profile as Record<string, unknown>)[supabaseAuthConfig.adminFlagColumn]);
 }
 
+export function hasMasterFlag(profile: unknown): boolean {
+  if (!profile || typeof profile !== "object") return false;
+  return Boolean((profile as Record<string, unknown>).is_master);
+}
+
 /** Only same-origin /admin paths are accepted as post-login redirects. */
 export function safeAdminPath(value: string | null | undefined) {
   if (!value) return "/admin/dashboard";
