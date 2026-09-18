@@ -1,4 +1,5 @@
 import { listAllReservations } from "@/src/lib/bookings";
+import { changeReservationStatus, deleteReservation } from "@/app/actions/bookings";
 
 export const metadata = {
   title: "Bookings",
@@ -22,6 +23,7 @@ export default async function AdminBookingsPage() {
                 <th className="px-4 py-3 font-medium">Dates</th>
                 <th className="px-4 py-3 font-medium">Guest</th>
                 <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium"></th>
               </tr>
             </thead>
             <tbody>
@@ -36,6 +38,22 @@ export default async function AdminBookingsPage() {
                     {stay.guestEmail ? ` · ${stay.guestEmail}` : ""}
                   </td>
                   <td className="px-4 py-3 uppercase tracking-[0.12em]">{stay.status}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-3">
+                      {stay.status === "pending" ? (
+                        <form action={changeReservationStatus.bind(null, stay.propertyId, stay.id, "confirmed")}>
+                          <button type="submit" className="underline underline-offset-2">
+                            Confirm
+                          </button>
+                        </form>
+                      ) : null}
+                      <form action={deleteReservation.bind(null, stay.propertyId, stay.id)}>
+                        <button type="submit" className="text-destructive underline underline-offset-2">
+                          Remove
+                        </button>
+                      </form>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

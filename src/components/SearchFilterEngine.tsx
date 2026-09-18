@@ -23,6 +23,7 @@ export function SearchFilterEngine({
   const [area, setArea] = useState("");
   const [category, setCategory] = useState("");
   const [minSqm, setMinSqm] = useState("");
+  const [offering, setOffering] = useState("");
   const [remote, setRemote] = useState<{ key: string; rows: PropertyRecord[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -56,13 +57,18 @@ export function SearchFilterEngine({
     };
   }, [clauses]);
 
-  const shown = remote?.key === clauseKey ? remote.rows : localMatches;
+  const shown = (remote?.key === clauseKey ? remote.rows : localMatches).filter((property) => {
+    if (!offering) return true;
+    if (offering === "SALE") return property.offering === "SALE" || property.offering === "BOTH";
+    if (offering === "RENTAL") return property.offering === "RENTAL" || property.offering === "BOTH";
+    return true;
+  });
 
   return (
     <>
       <div className="relative z-10 mx-auto -mt-16 max-w-7xl px-5 md:-mt-20 md:px-8">
         <form
-          className="grid gap-3 bg-card p-4 shadow-xl ring-1 ring-border sm:grid-cols-2 lg:grid-cols-4 md:p-5"
+          className="grid gap-3 bg-card p-4 shadow-xl ring-1 ring-border sm:grid-cols-2 lg:grid-cols-5 md:p-5"
           onSubmit={(event) => event.preventDefault()}
           data-search-clauses={JSON.stringify(clauses)}
         >
@@ -96,6 +102,19 @@ export function SearchFilterEngine({
                 {item.label}
               </option>
             ))}
+          </select>
+        </label>
+        <label className="block text-[10px] tracking-[0.22em] uppercase text-muted-foreground">
+          Offer
+          <select
+            value={offering}
+            onChange={(event) => setOffering(event.target.value)}
+            className={cn(selectClassName, "mt-1.5")}
+            name="offering"
+          >
+            <option value="">Sale or stay</option>
+            <option value="SALE">For sale</option>
+            <option value="RENTAL">For rent</option>
           </select>
         </label>
         <label className="block text-[10px] tracking-[0.22em] uppercase text-muted-foreground">

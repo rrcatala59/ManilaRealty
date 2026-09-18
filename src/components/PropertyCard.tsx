@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Bath, BedDouble, Maximize } from "lucide-react";
 import { ImageCarousel } from "@/components/image-carousel";
 import { PropertyCardImage } from "@/src/components/blocks/PropertyCard";
-import { formatPHP, typeLabel } from "@/lib/format";
+import { formatPHP, offeringLabel } from "@/lib/format";
 import { statusTone } from "@/lib/properties";
 import { cn } from "@/lib/utils";
 import type { PropertyRecord } from "@/src/types";
@@ -28,7 +28,7 @@ export function PropertyCard({ property }: { property: PropertyRecord }) {
               statusTone(property.status)
             )}
           >
-            {property.status === "AVAILABLE" ? typeLabel(property.type) : property.status}
+            {property.status === "AVAILABLE" ? offeringLabel(property.offering) : property.status}
           </span>
         </div>
         <div className="space-y-3 p-5">
@@ -38,7 +38,14 @@ export function PropertyCard({ property }: { property: PropertyRecord }) {
           <h3 className="font-heading text-2xl leading-tight text-foreground group-hover:opacity-80">
             {property.title}
           </h3>
-          <p className="text-sm font-medium tracking-wide">{formatPHP(property.price)}</p>
+          <p className="text-sm font-medium tracking-wide">
+            {property.offering === "RENTAL" && property.nightlyRate
+              ? `${formatPHP(property.nightlyRate)} / night`
+              : formatPHP(property.price)}
+          </p>
+          {property.offering === "BOTH" && property.nightlyRate ? (
+            <p className="text-xs text-muted-foreground">{formatPHP(property.nightlyRate)} / night to stay</p>
+          ) : null}
           <div className="flex flex-wrap gap-4 pt-1 text-xs text-muted-foreground">
             {property.beds > 0 ? (
               <span className="inline-flex items-center gap-1.5">

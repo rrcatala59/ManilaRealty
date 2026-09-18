@@ -21,6 +21,8 @@ create table if not exists public.properties (
   lng double precision not null,
   images jsonb not null default '[]'::jsonb,
   status text not null default 'AVAILABLE' check (status in ('AVAILABLE', 'RENTED', 'SOLD')),
+  offering text not null default 'BOTH' check (offering in ('SALE', 'RENTAL', 'BOTH')),
+  nightly_rate integer check (nightly_rate is null or nightly_rate >= 0),
   is_available boolean not null default true,
   is_featured boolean not null default false,
   created_at timestamptz not null default now(),

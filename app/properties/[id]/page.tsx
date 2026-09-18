@@ -63,7 +63,12 @@ export async function generateMetadata({ params }: PropertyPageContext): Promise
   const formattedPrice = formatPHP(property.price);
   const cleanDescription =
     property.description.length > 155 ? `${property.description.slice(0, 155).trimEnd()}...` : property.description;
-  const pageTitle = `${property.title} for Sale in ${location} | Brisa Realty`;
+  const pageTitle =
+    property.offering === "RENTAL"
+      ? `${property.title} for Rent in ${location} | Brisa Realty`
+      : property.offering === "BOTH"
+        ? `${property.title} in ${location} | Brisa Realty`
+        : `${property.title} for Sale in ${location} | Brisa Realty`;
   const pageUrl = `${siteOrigin()}/properties/${property.id}`;
   const ogDescription =
     property.description.length > 200 ? property.description.slice(0, 200).trimEnd() : property.description;

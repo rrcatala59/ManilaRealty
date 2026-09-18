@@ -8,9 +8,19 @@ export const PH_BOUNDS = {
 
 export const PROPERTY_TYPES = ["CONDO", "HOUSE", "COMMERCIAL"] as const;
 export const PROPERTY_STATUSES = ["AVAILABLE", "RENTED", "SOLD"] as const;
+export const PROPERTY_OFFERINGS = ["SALE", "RENTAL", "BOTH"] as const;
 
 export type PropertyType = (typeof PROPERTY_TYPES)[number];
 export type PropertyStatus = (typeof PROPERTY_STATUSES)[number];
+export type PropertyOffering = (typeof PROPERTY_OFFERINGS)[number];
+
+export function isStayOffering(offering: PropertyOffering) {
+  return offering === "RENTAL" || offering === "BOTH";
+}
+
+export function isSaleOffering(offering: PropertyOffering) {
+  return offering === "SALE" || offering === "BOTH";
+}
 
 const plainText = (max: number) =>
   z
@@ -82,6 +92,8 @@ export const propertyRecordSchema = z.object({
   coordinates: coordinatesSchema,
   images: z.array(z.union([z.string().url(), z.string().startsWith("/")])).max(24),
   status: z.enum(PROPERTY_STATUSES),
+  offering: z.enum(PROPERTY_OFFERINGS).default("BOTH"),
+  nightlyRate: z.number().int().nonnegative().nullable(),
   isAvailable: z.boolean(),
   isFeatured: z.boolean(),
   createdAt: z.string().optional(),
@@ -167,6 +179,18 @@ export function datesOverlap(aStart: string, aEnd: string, bStart: string, bEnd:
   return aStart < bEnd && aEnd > bStart;
 }
 
+function parseOffering(value: unknown): PropertyOffering {
+  if (value === "SALE" || value === "RENTAL" || value === "BOTH") return value;
+  return "BOTH";
+}
+
+function parseNightlyRate(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const rate = Number(value);
+  if (!Number.isFinite(rate) || rate < 0) return null;
+  return Math.round(rate);
+}
+
 export function parseStringList(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.filter((item): item is string => typeof item === "string");
@@ -204,6 +228,8 @@ export function normalizeProperty(row: Record<string, unknown>): PropertyRecord 
     coordinates,
     images: parseStringList(row.images),
     status: row.status,
+    offering: parseOffering(row.offering),
+    nightlyRate: parseNightlyRate(row.nightlyRate ?? row.nightly_rate),
     isAvailable: Boolean(row.isAvailable ?? row.is_available ?? true),
     isFeatured: Boolean(row.isFeatured ?? row.is_featured ?? false),
     createdAt: row.createdAt

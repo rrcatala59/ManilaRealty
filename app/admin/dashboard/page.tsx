@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { AdminBlockedDates } from "@/src/components/AdminBlockedDates";
 import { PropertyForm } from "@/src/components/PropertyForm";
 import { getDashboardStats, listAdminProperties } from "@/src/lib/admin";
+import { listPropertyReservations, listReservationWindows } from "@/src/lib/bookings";
 import { getPropertyById } from "@/src/lib/listings";
 import { formatPHP } from "@/lib/format";
 import { deleteProperty } from "@/app/actions/properties";
@@ -20,6 +22,8 @@ export default async function AdminDashboardPage({
     listAdminProperties(),
     edit ? getPropertyById(edit) : Promise.resolve(null),
   ]);
+  const stayWindows = editing ? await listReservationWindows(editing.id) : [];
+  const stayRows = editing ? await listPropertyReservations(editing.id) : [];
 
   const cards = [
     { label: "Total listings", value: stats.listings },
@@ -51,6 +55,9 @@ export default async function AdminDashboardPage({
             {editing ? editing.title : "New property"}
           </h2>
           <PropertyForm key={editing?.id ?? "create"} property={editing ?? undefined} />
+          {editing ? (
+            <AdminBlockedDates propertyId={editing.id} windows={stayWindows} reservations={stayRows} />
+          ) : null}
         </div>
         <aside>
           <p className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground">Catalogue</p>

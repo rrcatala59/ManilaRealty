@@ -147,6 +147,9 @@ function parsePropertyPayload(formData: FormData) {
   const sqm = Number(formData.get("sqm") ?? 0);
   const lat = Number(formData.get("lat") ?? 14.5547);
   const lng = Number(formData.get("lng") ?? 121.0244);
+  const offering = String(formData.get("offering") ?? "BOTH");
+  const nightlyRaw = String(formData.get("nightlyRate") ?? "").trim();
+  const nightlyRate = nightlyRaw === "" ? null : Number(nightlyRaw);
   const isAvailable = formData.get("isAvailable") === "on";
   const isFeatured = formData.get("isFeatured") === "on";
   const amenities = String(formData.get("amenities") ?? "")
@@ -170,6 +173,8 @@ function parsePropertyPayload(formData: FormData) {
     address,
     type,
     status,
+    offering: offering === "SALE" || offering === "RENTAL" || offering === "BOTH" ? offering : "BOTH",
+    nightlyRate: nightlyRate != null && Number.isFinite(nightlyRate) && nightlyRate >= 0 ? Math.round(nightlyRate) : null,
     price,
     beds,
     baths,
@@ -196,6 +201,8 @@ export async function upsertProperty(id: string | null, formData: FormData): Pro
       address: payload.address,
       type: payload.type,
       status: payload.status,
+      offering: payload.offering,
+      nightly_rate: payload.nightlyRate,
       price: payload.price,
       beds: payload.beds,
       baths: payload.baths,

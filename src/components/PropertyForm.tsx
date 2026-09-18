@@ -75,8 +75,33 @@ export function PropertyForm({ property }: { property?: PropertyRecord }) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="price">Price (PHP)</Label>
+          <Label htmlFor="price">Sale price (PHP)</Label>
           <Input id="price" name="price" type="number" required defaultValue={property?.price} className={field} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="nightlyRate">Nightly stay rate (PHP)</Label>
+          <Input
+            id="nightlyRate"
+            name="nightlyRate"
+            type="number"
+            min={0}
+            defaultValue={property?.nightlyRate ?? ""}
+            className={field}
+            placeholder="Leave blank if sale only"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="offering">Offered as</Label>
+          <select
+            id="offering"
+            name="offering"
+            defaultValue={property?.offering ?? "BOTH"}
+            className="h-11 w-full rounded-sm border border-input bg-transparent px-3 text-sm"
+          >
+            <option value="BOTH">For sale and for rent</option>
+            <option value="SALE">For sale only</option>
+            <option value="RENTAL">For rent only</option>
+          </select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="city">City</Label>
@@ -230,7 +255,7 @@ export function PropertyForm({ property }: { property?: PropertyRecord }) {
       <div className="flex flex-wrap gap-6">
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="isAvailable" defaultChecked={property?.isAvailable ?? true} />
-          Available for future booking
+          Open for stay bookings
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="isFeatured" defaultChecked={property?.isFeatured ?? false} />

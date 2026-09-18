@@ -1,4 +1,4 @@
-import type { PropertyStatus, PropertyType } from "@/src/types";
+import type { PropertyOffering, PropertyStatus, PropertyType } from "@/src/types";
 
 export function formatPHP(price: number) {
   return new Intl.NumberFormat("en-PH", {
@@ -14,6 +14,19 @@ export function parseJsonList(value: string): string[] {
     return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
   } catch {
     return [];
+  }
+}
+
+export function offeringLabel(offering: PropertyOffering) {
+  switch (offering) {
+    case "SALE":
+      return "For sale";
+    case "RENTAL":
+      return "For rent";
+    case "BOTH":
+      return "Sale & stay";
+    default:
+      return offering;
   }
 }
 

@@ -40,6 +40,8 @@ model Property {
   lng         Float
   images      String
   status      PropertyStatus @default(AVAILABLE)
+  offering    String         @default("BOTH")
+  nightlyRate Int?
   isAvailable Boolean        @default(true)
   isFeatured  Boolean        @default(false)
   createdAt   DateTime       @default(now())
