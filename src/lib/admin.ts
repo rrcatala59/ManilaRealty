@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/format";
 import { getServiceSupabase, getSupabase } from "@/src/lib/supabase";
+import { createServerSupabase } from "@/src/lib/supabase/server";
 import { listProperties, getPropertyById } from "@/src/lib/listings";
 import { normalizeProperty, type PropertyRecord } from "@/src/types";
 
@@ -22,12 +23,12 @@ export type DashboardStats = {
   recent: AdminInquiry[];
 };
 
-function writeClient() {
-  return getServiceSupabase() ?? getSupabase();
+async function writeClient() {
+  return getServiceSupabase() ?? (await createServerSupabase()) ?? getSupabase();
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const supabase = writeClient();
+  const supabase = await writeClient();
   if (supabase) {
     const [{ data: properties }, { data: inquiries }] = await Promise.all([
       supabase.from("properties").select("id, status"),
@@ -81,7 +82,7 @@ export async function listAdminProperties(): Promise<PropertyRecord[]> {
 }
 
 export async function listAdminInquiries(): Promise<AdminInquiry[]> {
-  const supabase = writeClient();
+  const supabase = await writeClient();
   if (supabase) {
     const { data, error } = await supabase
       .from("inquiries")
@@ -184,7 +185,7 @@ function parsePropertyPayload(formData: FormData) {
 
 export async function upsertProperty(id: string | null, formData: FormData): Promise<PropertyRecord> {
   const payload = parsePropertyPayload(formData);
-  const supabase = writeClient();
+  const supabase = await writeClient();
 
   if (supabase) {
     const row = {
@@ -256,7 +257,7 @@ export async function upsertProperty(id: string | null, formData: FormData): Pro
 }
 
 export async function removeProperty(id: string) {
-  const supabase = writeClient();
+  const supabase = await writeClient();
   if (supabase) {
     const { error } = await supabase.from("properties").delete().eq("id", id);
     if (error) throw new Error(error.message);

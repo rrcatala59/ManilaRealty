@@ -26,7 +26,7 @@ export async function protectAdminRoute(request: NextRequest) {
     return NextResponse.next();
   }
 
-  let response = NextResponse.next({ request });
+  let response = NextResponse.next();
   const supabase = createServerClient(
     supabaseProjectUrl(),
     supabaseAnonKey(),
@@ -36,8 +36,6 @@ export async function protectAdminRoute(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options);
           });

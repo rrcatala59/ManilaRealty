@@ -9,7 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { saveProperty } from "@/app/actions/properties";
 import type { PropertyRecord } from "@/src/types";
-import { mergeImagePaths, parseImagePathList, uploadPropertyImages } from "@/src/utils/storage";
+import { mergeImagePaths, parseImagePathList } from "@/src/utils/storage";
+import { compressPropertyImage } from "@/src/utils/compress-image";
+import { uploadPropertyImages } from "@/src/utils/upload-images";
 
 const field = "h-11 rounded-sm";
 
@@ -17,32 +19,42 @@ export function PropertyForm({ property }: { property?: PropertyRecord }) {
   const [images, setImages] = useState(property?.images.join("\n") ?? "");
   const [amenities, setAmenities] = useState<string[]>(property?.amenities ?? []);
   const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const imageList = parseImagePathList(images);
 
-  async function onUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files ?? []);
+  async function handleFiles(list: File[]) {
+    const files = list.filter((file) => file.type.startsWith("image/"));
     if (files.length === 0) return;
     setUploading(true);
     try {
-      const uploaded = await uploadPropertyImages(files);
+      const compressed: File[] = [];
+      for (const file of files) {
+        compressed.push(await compressPropertyImage(file));
+      }
+      const uploaded = await uploadPropertyImages(compressed);
       setImages((prev) => mergeImagePaths(prev, uploaded));
       toast.success(uploaded.length === 1 ? "Image uploaded" : `${uploaded.length} images uploaded`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Upload failed");
+      const message = error instanceof Error ? error.message : "Upload failed";
+      toast.error(`Upload: ${message}`);
     } finally {
       setUploading(false);
-      event.target.value = "";
     }
+  }
+
+  async function onUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    await handleFiles(files);
   }
 
   function removeImage(url: string) {
     setImages(imageList.filter((item) => item !== url).join("\n"));
   }
 
-  const action = saveProperty.bind(null, property?.id ?? null);
-
   return (
-    <form action={action} className="space-y-6">
+    <div>
+    <form action={saveProperty.bind(null, property?.id ?? null)} className="space-y-6">
       <input type="hidden" name="images" value={images} />
       <input type="hidden" name="amenities" value={amenities.join(",")} />
 
@@ -177,21 +189,33 @@ export function PropertyForm({ property }: { property?: PropertyRecord }) {
         ) : (
           <p className="text-sm text-muted-foreground">No photographs yet. Upload several at once.</p>
         )}
-        <div className="flex flex-wrap items-center gap-3">
-          <Label htmlFor="upload" className="cursor-pointer text-sm underline underline-offset-4">
-            {uploading ? "Uploading…" : "Upload images"}
-          </Label>
-          <input
-            id="upload"
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={onUpload}
-          />
-          <span className="text-xs text-muted-foreground">
-            Stored in the public `property-images` bucket when Supabase is linked, otherwise local /uploads.
-          </span>
+        <div
+          className={`rounded-sm border border-dashed px-4 py-6 ${dragOver ? "border-foreground bg-muted/50" : "border-border"}`}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(event) => {
+            event.preventDefault();
+            setDragOver(false);
+            void handleFiles(Array.from(event.dataTransfer.files));
+          }}
+        >
+          <p className="text-sm">
+            {uploading ? "Compressing and uploading…" : "Drop photographs here, or choose files."}
+          </p>
+          <button
+            type="button"
+            className="mt-2 cursor-pointer text-sm underline underline-offset-4"
+            onClick={() => document.getElementById("upload")?.click()}
+          >
+            Choose files
+          </button>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Photos are resized to 1200px wide, converted to WebP at 75% quality, then stored in
+            `property-images`.
+          </p>
         </div>
         <Textarea
           id="image-urls"
@@ -218,5 +242,16 @@ export function PropertyForm({ property }: { property?: PropertyRecord }) {
         {property ? "Save listing" : "Publish listing"}
       </Button>
     </form>
+      <form id="property-image-upload" onSubmit={(event) => event.preventDefault()} hidden />
+      <input
+        id="upload"
+        form="property-image-upload"
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+        multiple
+        className="hidden"
+        onChange={onUpload}
+      />
+    </div>
   );
 }

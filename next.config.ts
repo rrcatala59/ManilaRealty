@@ -26,6 +26,11 @@ const supabaseStoragePatterns = (hostname: string) =>
   ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "8mb",
+    },
+  },
   images: {
     // Enable modern high-efficiency formats for slower Philippine mobile networks
     formats: ["image/avif", "image/webp"],

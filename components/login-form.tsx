@@ -9,7 +9,13 @@ import { Label } from "@/components/ui/label";
 
 const initial: LoginState = {};
 
-export function LoginForm({ next = "/admin/dashboard" }: { next?: string }) {
+export function LoginForm({
+  next = "/admin/dashboard",
+  usesSupabaseAuth = false,
+}: {
+  next?: string;
+  usesSupabaseAuth?: boolean;
+}) {
   const [state, action, pending] = useActionState(loginAction, initial);
 
   return (
@@ -22,20 +28,30 @@ export function LoginForm({ next = "/admin/dashboard" }: { next?: string }) {
           name="email"
           type="email"
           required
-          defaultValue="admin@brisarealty.ph"
+          autoComplete="username"
+          defaultValue={usesSupabaseAuth ? undefined : "admin@brisarealty.ph"}
           className="h-11 rounded-sm"
         />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="password">Password</Label>
-        <Input id="password" name="password" type="password" required className="h-11 rounded-sm" />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          className="h-11 rounded-sm"
+        />
       </div>
       {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
       <Button type="submit" disabled={pending} className="h-11 w-full rounded-sm tracking-[0.16em] uppercase">
         {pending ? "Signing in…" : "Enter the studio"}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        Demo access is listed in the README.{" "}
+        {usesSupabaseAuth
+          ? "Use the email and password from Supabase Authentication → Users. The README demo login only works on local SQLite."
+          : "Demo access is listed in the README."}{" "}
         <Link href="/" className="underline underline-offset-2">
           Back to the site
         </Link>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/login-form";
 import { getAdminOrNull } from "@/src/lib/auth-guard";
+import { isSupabaseConfigured } from "@/src/lib/supabase";
 import { safeAdminPath } from "@/src/lib/supabase/auth-config";
 
 export const metadata = {
@@ -24,7 +25,7 @@ export default async function LoginPage({
         <p className="mt-2 mb-8 text-center text-sm text-muted-foreground">
           The studio is for Brisa administrators only.
         </p>
-        <LoginForm next={afterLogin} />
+        <LoginForm next={afterLogin} usesSupabaseAuth={isSupabaseConfigured()} />
       </div>
     </div>
   );

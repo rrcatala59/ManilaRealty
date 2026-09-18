@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { cookies } from "next/headers";
 import { isSupabaseConfigured } from "@/src/lib/supabase";
 import { hasAdminFlag, supabaseAuthConfig } from "@/src/lib/supabase/auth-config";
 import { createServerSupabase } from "@/src/lib/supabase/server";
-import { cookies } from "next/headers";
 
 export type AdminIdentity = {
   id: string;
@@ -34,6 +33,7 @@ export async function getAdminOrNull(): Promise<AdminIdentity | null> {
     return null;
   }
 
+  const { auth } = await import("@/auth");
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") {
     return null;
