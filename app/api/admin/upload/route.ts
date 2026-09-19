@@ -1,19 +1,23 @@
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { NextResponse } from "next/server";
 import { getAdminOrNull } from "@/src/lib/auth-guard";
-import { isSupabaseConfigured, supabaseAnonKey, supabaseProjectUrl } from "@/src/lib/supabase";
-import { createServerSupabase } from "@/src/lib/supabase/server";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import {
   ACCEPTED_IMAGE_TYPES,
   MAX_PROPERTY_IMAGE_BYTES,
-  PROPERTY_IMAGES_BUCKET,
-  publicUrlFromSupabase,
   sanitizeStorageFilename,
   storageObjectPath,
 } from "@/src/utils/storage";
 
 export const runtime = "nodejs";
+
+// Initialize the AWS S3 client
+const s3Client = new S3Client({
+  region: process.env.AWZ_REGION || "ap-southeast-1",
+  credentials: {
+    accessKeyId: process.env.AWZ_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWZ_SECRET_ACCESS_KEY || "",
+  },
+});
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -22,55 +26,6 @@ function jsonError(message: string, status: number) {
 function uploadedBlob(value: FormDataEntryValue | null): Blob | null {
   if (!value || typeof value === "string") return null;
   return value;
-}
-
-async function sessionAccessToken() {
-  const supabase = await createServerSupabase();
-  if (!supabase) return "";
-  const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? "";
-}
-
-async function uploadToStorage(objectPath: string, bytes: Buffer, mimeType: string) {
-  const origin = supabaseProjectUrl();
-  const anonKey = supabaseAnonKey();
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "";
-  const userToken = await sessionAccessToken();
-  const token = serviceKey || userToken || anonKey;
-  if (!origin || !token) {
-    throw new Error("Supabase Storage is not configured.");
-  }
-
-  const response = await fetch(`${origin}/storage/v1/object/${PROPERTY_IMAGES_BUCKET}/${objectPath}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      apikey: anonKey || token,
-      "Content-Type": mimeType,
-    },
-    body: new Uint8Array(bytes),
-  });
-  const text = await response.text();
-  if (response.ok) {
-    return publicUrlFromSupabase(origin, objectPath);
-  }
-
-  let detail = text.slice(0, 240) || `HTTP ${response.status}`;
-  try {
-    const parsed = JSON.parse(text) as { message?: string; error?: string };
-    detail = parsed.message || parsed.error || detail;
-  } catch {
-    // Keep the raw body.
-  }
-  if (response.status === 400 && /not found|bucket/i.test(detail)) {
-    throw new Error("The property-images bucket is missing. Recreate it from supabase/structure.sql.");
-  }
-  if ((response.status === 403 || response.status === 401) && !serviceKey) {
-    throw new Error(
-      `${detail} Add SUPABASE_SERVICE_ROLE_KEY on the host (.env.local and Vercel) so studio uploads can write to Storage.`
-    );
-  }
-  throw new Error(detail);
 }
 
 export async function POST(request: Request) {
@@ -94,18 +49,29 @@ export async function POST(request: Request) {
     }
 
     const filename = sanitizeStorageFilename("name" in file && typeof file.name === "string" ? file.name : "image.webp");
-    const objectPath = storageObjectPath(filename);
+    // This generates your "listings/filename.jpg" path pattern
+    const objectPath = storageObjectPath(filename); 
     const bytes = Buffer.from(await file.arrayBuffer());
 
-    if (isSupabaseConfigured()) {
-      const url = await uploadToStorage(objectPath, bytes, mimeType);
-      return NextResponse.json({ url, bucket: PROPERTY_IMAGES_BUCKET, path: objectPath });
+    const bucketName = process.env.AWZ_S3_BUCKET_NAME;
+    if (!bucketName) {
+      throw new Error("AWZ_S3_BUCKET_NAME environment variable is not defined.");
     }
 
-    const dir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, filename), bytes);
-    return NextResponse.json({ url: `/uploads/${filename}`, bucket: null, path: filename });
+    // Upload files straight to AWS S3
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: objectPath,
+        Body: bytes,
+        ContentType: mimeType,
+      })
+    );
+
+    // Build the clean public access S3 URL structure
+    const url = `https://${bucketName}.s3.${process.env.AWZ_REGION || "ap-southeast-1"}://{objectPath}`;
+
+    return NextResponse.json({ url, bucket: bucketName, path: objectPath });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed";
     return jsonError(message, 500);
